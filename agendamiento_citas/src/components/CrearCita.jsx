@@ -1,15 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 function CrearCita() {
-  console.log('Rendering CrearCita component');
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [citas, setCitas] = useState([]);
-
-  useEffect(() => {
-    fetch('http://localhost:3001/appointments') // Asegúrate de reemplazar esto con la URL de tu servidor
-      .then(response => response.json())
-      .then(data => setCitas(data.appointments));
-  }, []);
+  const [selectedDate, setSelectedDate] = useState('');
 
   const handleDateChange = (event) => {
     setSelectedDate(event.target.value);
@@ -17,24 +9,36 @@ function CrearCita() {
 
   const handleConfirmClick = () => {
     if (selectedDate) {
-      alert(`Se creará una cita el día ${selectedDate}, confirma tu cita`);
-      // Aquí puedes enviar la cita al servidor o almacenarla en el estado global de la aplicación
+      const nuevaCita = {
+        date: selectedDate,
+        name: 'Nombre de la cita',
+        description: 'Descripción de la cita'
+      };
+
+      fetch('http://localhost:3001/appointments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(nuevaCita),
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert('Cita creada con éxito');
+        setSelectedDate('');
+      })
+      .catch(error => {
+        console.error('Error al crear la cita:', error);
+        alert('Hubo un error al crear la cita. Por favor, inténtalo de nuevo.');
+      });
     }
   };
 
   return (
     <div>
       <p>Seleccione la fecha para agendar una cita:</p>
-      <input type="date" onChange={handleDateChange} />
+      <input type="date" value={selectedDate} onChange={handleDateChange} />
       <button onClick={handleConfirmClick}>Confirmar cita</button>
-      <div>
-        {citas.map(cita => (
-          <div key={cita.id}>
-            <p>{cita.date} - {cita.name}</p>
-            <p>{cita.description}</p>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
